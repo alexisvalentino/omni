@@ -11,7 +11,7 @@ module.exports = {
     ],
     unoptimized: true,
   },
-  output: 'export',
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   swcMinify: true,
   transpilePackages: [
     '@ionic/react',
