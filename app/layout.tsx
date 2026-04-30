@@ -1,33 +1,24 @@
 import type { Metadata, Viewport } from 'next';
-import Script from 'next/script';
-
-import 'tailwindcss/tailwind.css';
-/* Core CSS required for Ionic components to work properly */
-import '@ionic/react/css/core.css';
-
-/* Basic CSS for apps built with Ionic */
-import '@ionic/react/css/normalize.css';
-import '@ionic/react/css/structure.css';
-import '@ionic/react/css/typography.css';
-
-/* Optional CSS utils that can be commented out */
-import '@ionic/react/css/padding.css';
-import '@ionic/react/css/float-elements.css';
-import '@ionic/react/css/text-alignment.css';
-import '@ionic/react/css/text-transformation.css';
-import '@ionic/react/css/flex-utils.css';
-import '@ionic/react/css/display.css';
 
 import '../styles/global.css';
 import '../styles/variables.css';
 
 export const metadata: Metadata = {
-  title: 'Create Next App',
-  description: 'CrossPlatform App',
+  title: 'Omni — Agent-First OS',
+  description: 'A post-smartphone operating system simulator. Issue commands, watch AI agents execute.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: '/apple-touch-icon.svg',
+  },
 };
 
 export const viewport: Viewport = {
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   width: 'device-width',
   viewportFit: 'cover',
 };
@@ -40,16 +31,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>{children}</body>
-      <Script
-        type="module"
-        src="https://unpkg.com/ionicons@5.2.3/dist/ionicons/ionicons.esm.js"
-        strategy="lazyOnload"
-      />
-      <Script
-        noModule
-        src="https://unpkg.com/ionicons@5.2.3/dist/ionicons/ionicons.js"
-        strategy="lazyOnload"
-      />
     </html>
   );
 }
