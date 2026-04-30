@@ -14,9 +14,6 @@ module.exports = {
   output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   swcMinify: true,
   transpilePackages: [
-    '@ionic/react',
-    '@ionic/core',
-    '@stencil/core',
-    'ionicons',
+    'framer-motion',
   ],
 };

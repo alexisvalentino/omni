@@ -1,35 +1,160 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# ==========================================
+# DEPENDENCIES
+# ==========================================
+node_modules/
 /.pnp
 .pnp.js
+.yarn/install-state.gz
 
-# testing
-/coverage
+# ==========================================
+# BUILD & OUTPUT
+# ==========================================
 
-# next.js
+# Next.js
 /.next/
 /out/
 
-# production
+# Production build
 /build
+/dist
 
-# misc
-.DS_Store
+# Capacitor web assets (generated via cap sync)
+android/app/src/main/assets/public/
+ios/App/App/public/
+
+# ==========================================
+# ENVIRONMENT & SECRETS (SENSITIVE)
+# ==========================================
+
+# Environment variables — NEVER commit these
+.env
+.env.*
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.staging
+.env.production
+.env.production.local
+
+# Private keys & certificates
 *.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
 
-# debug
+# Keystore files (Android signing)
+*.jks
+*.keystore
+
+# Google services / Firebase config (contains API keys)
+google-services.json
+GoogleService-Info.plist
+
+# ==========================================
+# NATIVE BUILD ARTIFACTS
+# ==========================================
+
+# Gradle (Android)
+.gradle/
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/
+
+# iOS
+ios/App/build/
+ios/App/Pods/
+ios/App/output/
+ios/DerivedData/
+ios/capacitor-cordova-ios-plugins/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Cocoapods
+ios/App/Podfile.lock
+
+# ==========================================
+# IDE & EDITOR
+# ==========================================
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/*.code-workspace
+
+# JetBrains
+.idea/
+
+# ==========================================
+# OS FILES
+# ==========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ==========================================
+# LOGS & DEBUG
+# ==========================================
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# ==========================================
+# TYPESCRIPT
+# ==========================================
+
 tsconfig.tsbuildinfo
+*.tsbuildinfo
 
-# local env files
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# ==========================================
+# TESTING
+# ==========================================
 
-# vercel
+/coverage
+*.lcov
+
+# ==========================================
+# MISC
+# ==========================================
+
+# Vercel
 .vercel
+
+# Sentry
+.sentryclirc
+
+# Storybook
+storybook-static/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
