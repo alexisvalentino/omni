@@ -11,12 +11,17 @@ import {
   IonIcon,
   IonContent,
   IonMenuButton,
+  IonBadge,
+  IonFab,
+  IonFabButton,
 } from '@ionic/react';
 import Notifications from './Notifications';
 import { useState } from 'react';
-import { notificationsOutline } from 'ionicons/icons';
-import { selectHomeItems } from '../../store/selectors';
+import { notificationsOutline, addOutline } from 'ionicons/icons';
+import { selectHomeItems, selectNotifications } from '../../store/selectors';
 import Store from '../../store';
+import { addNotification } from '../../store/actions';
+import { scheduleLocalNotification } from '../../services/notifications';
 
 type FeedCardProps = {
   title: string;
@@ -77,7 +82,30 @@ const FeedCard = ({
 
 const Feed = () => {
   const homeItems = Store.useState(selectHomeItems);
+  const notifications = Store.useState(selectNotifications);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const handleTestNotification = async () => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Add to in-app notification list
+    addNotification({
+      title: `Test notification at ${timeStr}`,
+      when: 'just now',
+    });
+
+    // Also trigger a real local notification (1 second delay so you see it)
+    try {
+      await scheduleLocalNotification({
+        title: '📱 Test Notification',
+        body: `This was triggered at ${timeStr}`,
+        scheduleInSeconds: 1,
+      });
+    } catch (err) {
+      console.log('[Feed] Local notification skipped:', err);
+    }
+  };
 
   return (
     <IonPage>
@@ -90,6 +118,25 @@ const Feed = () => {
           <IonButtons slot="end">
             <IonButton onClick={() => setShowNotifications(true)}>
               <IonIcon icon={notificationsOutline} />
+              {notifications.length > 0 && (
+                <IonBadge
+                  color="danger"
+                  style={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 2,
+                    fontSize: 10,
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {notifications.length}
+                </IonBadge>
+              )}
             </IonButton>
           </IonButtons>
         </IonToolbar>
@@ -107,6 +154,13 @@ const Feed = () => {
         {homeItems.map((i, index) => (
           <FeedCard {...i} key={index} />
         ))}
+
+        {/* FAB button to send a test notification */}
+        <IonFab slot="fixed" vertical="bottom" horizontal="end">
+          <IonFabButton onClick={handleTestNotification}>
+            <IonIcon icon={addOutline} />
+          </IonFabButton>
+        </IonFab>
       </IonContent>
     </IonPage>
   );
