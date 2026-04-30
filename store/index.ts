@@ -13,6 +13,8 @@ type StoreProps = {
   notifications: NotificationItem[];
   settings: Settings;
   selectedList: TodoListItem | undefined;
+  pushToken: string | null;
+  notificationPermission: 'granted' | 'denied' | 'prompt' | 'unknown';
 }
 
 const Store = new PullStateStore<StoreProps>({
@@ -26,6 +28,8 @@ const Store = new PullStateStore<StoreProps>({
   notifications,
   settings,
   selectedList: undefined,
+  pushToken: null,
+  notificationPermission: 'unknown',
 });
 
 export default Store;
