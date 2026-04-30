@@ -12,6 +12,7 @@ const stocks = [
 ];
 
 export default function FinanceScenario() {
+  const userPrompt = useOmniStore((s) => s.userPrompt).toLowerCase();
   const approveAction = useOmniStore((s) => s.approveAction);
   const workspacePhase = useOmniStore((s) => s.workspacePhase);
   const [loading, setLoading] = useState(true);
@@ -23,6 +24,7 @@ export default function FinanceScenario() {
 
   const totalValue = 24830;
   const dayChange = 142;
+  const isWallet = userPrompt.includes('wallet') || userPrompt.includes('balance') || userPrompt.includes('card') || userPrompt.includes('pay') || userPrompt.includes('transaction');
 
   if (loading) {
     return (
@@ -31,6 +33,65 @@ export default function FinanceScenario() {
         <div className="skeleton" style={{ height: 140, borderRadius: 10 }}/>
         <div className="skeleton" style={{ height: 50, borderRadius: 10 }}/>
       </div>
+    );
+  }
+
+  if (isWallet) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #2c2c2e 0%, #1c1c1e 100%)', borderRadius: 16,
+          padding: 20, marginBottom: 16, border: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <div style={{ fontSize: 16, fontWeight: 600 }}>Apple Card</div>
+            <div style={{ fontSize: 24 }}></div>
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Card Balance</div>
+          <div style={{ fontSize: 36, fontWeight: 700, margin: '4px 0 16px' }}>$1,248.50</div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ flex: 1, background: 'rgba(255,255,255,0.1)', padding: 10, borderRadius: 8, textAlign: 'center' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Available</div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>$8,751.50</div>
+            </div>
+            <div style={{ flex: 1, background: 'rgba(255,255,255,0.1)', padding: 10, borderRadius: 8, textAlign: 'center' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Daily Cash</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--accent-green)' }}>$42.15</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: 'var(--bg-tertiary)', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>Latest Transactions</div>
+          {[
+            { name: 'Whole Foods Market', amount: 84.20, time: 'Today', icon: '🛒' },
+            { name: 'Uber Ride', amount: 24.50, time: 'Yesterday', icon: '🚗' },
+            { name: 'Blue Bottle Coffee', amount: 6.80, time: 'Yesterday', icon: '☕' },
+          ].map((tx, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < 2 ? '1px solid var(--separator)' : 'none' }}>
+              <div style={{ fontSize: 24 }}>{tx.icon}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 500 }}>{tx.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{tx.time}</div>
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 600 }}>${tx.amount.toFixed(2)}</div>
+            </div>
+          ))}
+        </div>
+
+        {workspacePhase !== 'complete' && (
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => { successSound(); approveAction(); }}
+            style={{
+              width: '100%', padding: 14, background: 'var(--text-primary)', color: 'var(--bg-primary)',
+              border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit'
+            }}
+          >
+            Pay Balance Now
+          </motion.button>
+        )}
+      </motion.div>
     );
   }
 

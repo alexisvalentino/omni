@@ -13,7 +13,7 @@ import NavigationScenario from '../scenarios/NavigationScenario';
 import TravelScenario from '../scenarios/TravelScenario';
 import GeneralScenario from '../scenarios/GeneralScenario';
 import { tickSound, openSound } from '../../services/sounds';
-import { getCommuteDepartureTime } from '../../services/timeContext';
+import { getCommuteDepartureTime, getCalendarEvents } from '../../services/timeContext';
 
 function TypingText({ text, speed = 25, onDone }: { text: string; speed?: number; onDone?: () => void }) {
   const [displayed, setDisplayed] = useState('');
@@ -51,6 +51,8 @@ export default function WorkspaceContainer() {
   const advanceWorkspace = useOmniStore((s) => s.advanceWorkspace);
   const completeStep = useOmniStore((s) => s.completeStep);
   const approveAction = useOmniStore((s) => s.approveAction);
+
+  const events = getCalendarEvents();
 
   const [typingDone, setTypingDone] = useState(false);
   const [stepsAnimated, setStepsAnimated] = useState(false);
@@ -312,70 +314,153 @@ export default function WorkspaceContainer() {
                 </div>
               )}
 
-              {activeScenario === 'relationship' && (
-                <div style={{
-                  background: 'var(--bg-tertiary)',
-                  borderRadius: 10,
-                  padding: 14,
-                  marginBottom: 14,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 16,
-                      background: 'var(--bg-secondary)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 14, fontWeight: 600,
-                    }}>S</div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>Sarah Chen</div>
-                      <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>2 messages sent</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Cancelled dinner tonight • Proposed lunch Tue 12:30 PM at The Corner Kitchen
-                  </div>
-                </div>
-              )}
+              {activeScenario === 'relationship' && (() => {
+                const lower = userPrompt.toLowerCase();
+                let initial = 'S';
+                let initialColor = 'var(--text-primary)';
+                let title = 'Sarah Chen';
+                let subtitle = '2 messages sent';
+                let detail = 'Cancelled dinner tonight • Proposed lunch Tue 12:30 PM at The Corner Kitchen';
 
-              {activeScenario === 'email' && (
-                <div style={{
-                  background: 'var(--bg-tertiary)',
-                  borderRadius: 10,
-                  padding: 14,
-                  marginBottom: 14,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 16,
-                      background: 'var(--bg-secondary)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, fontWeight: 600, color: 'var(--accent)',
-                    }}>DK</div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>Reply sent to David Kim</div>
-                      <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>Re: Q3 Deliverables Timeline</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Deadline pushed to next Wednesday • Dashboard mockups confirmed for Friday
-                  </div>
-                </div>
-              )}
+                if (lower.includes('mom') && (lower.includes('message') || lower.includes('text'))) {
+                  initial = 'M';
+                  title = 'Mom';
+                  subtitle = 'Message sent';
+                  detail = 'Sent iMessage: "Hey Mom! Just thinking about you..."';
+                } else if (lower.includes('john') || lower.includes('birthday')) {
+                  initial = 'J';
+                  title = 'John Doe';
+                  subtitle = 'Message sent';
+                  detail = 'Sent iMessage with birthday wishes and celebratory emojis';
+                } else if (lower.includes('texts') || lower.includes('read')) {
+                  initial = '✓';
+                  initialColor = 'var(--accent-green)';
+                  title = 'Messages Read';
+                  subtitle = 'Inbox caught up';
+                  detail = 'Marked 4 messages as read • No urgent replies needed';
+                } else if (lower.includes('mom') && lower.includes('call')) {
+                  initial = 'M';
+                  title = 'Mom';
+                  subtitle = 'Call ended';
+                  detail = 'FaceTime Audio • 4m 12s duration';
+                } else if (lower.includes('recent') || lower.includes('missed')) {
+                  initial = 'M';
+                  title = 'Mom';
+                  subtitle = 'Call ended';
+                  detail = 'Returned missed call • 2m 05s duration';
+                } else if (lower.includes('pizza') || lower.includes('nearest')) {
+                  initial = '🍕';
+                  title = "Tony's Pizza";
+                  subtitle = 'Call ended';
+                  detail = 'Mobile Call • 1m 30s duration';
+                }
 
-              {activeScenario === 'schedule' && (
-                <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 24 }}>📅</span>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>Schedule Optimized</div>
-                      <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>3 events reorganized</div>
+                return (
+                  <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 16, background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: initialColor }}>
+                        {initial}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>{subtitle}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {detail}
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Design Review moved to 2 PM • 3-5 PM block freed for focus time
+                );
+              })()}
+
+              {activeScenario === 'email' && (() => {
+                const lower = userPrompt.toLowerCase();
+                let initial = 'DK';
+                let initialColor = 'var(--accent)';
+                let title = 'Reply sent to David Kim';
+                let subtitle = 'Re: Q3 Deliverables Timeline';
+                let detail = 'Deadline pushed to next Wednesday • Dashboard mockups confirmed for Friday';
+                
+                if (lower.includes('boss') || lower.includes('summarize')) {
+                  // Keep default DK summary
+                } else if (lower.includes('draft') || lower.includes('follow-up')) {
+                  initial = 'SC';
+                  initialColor = 'var(--accent-orange)';
+                  title = 'Follow-up sent to Sarah Chen';
+                  subtitle = 'Landing Page Assets';
+                  detail = 'Requested ETA for design assets • Aiming for next Tuesday implementation';
+                } else if (lower.includes('unread') || lower.includes('check')) {
+                  initial = '✓';
+                  initialColor = 'var(--accent-green)';
+                  title = 'Inbox Cleared';
+                  subtitle = '3 unread messages processed';
+                  detail = 'All messages marked as read • No further action required';
+                } else if (lower.includes('reply') || lower.includes('latest')) {
+                  initial = 'AC';
+                  initialColor = 'var(--accent-green)';
+                  title = 'Reply sent to Alex Chen';
+                  subtitle = 'Re: Latest Metrics Report';
+                  detail = 'Acknowledged receipt • Deeper dive this afternoon • Scheduled sync for tomorrow';
+                }
+
+                return (
+                  <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 16,
+                        background: 'var(--bg-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 12, fontWeight: 600, color: initialColor,
+                      }}>{initial}</div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>{subtitle}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {detail}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
+
+              {activeScenario === 'schedule' && (() => {
+                const lower = userPrompt.toLowerCase();
+                let title = 'Schedule Optimized';
+                let subtitle = '3 events reorganized';
+                let detail = 'Design Review moved to 2 PM • 3-5 PM block freed for focus time';
+                if ((lower.includes('what') && lower.includes('calendar')) || lower.includes('today')) {
+                  title = 'Schedule Reviewed';
+                  subtitle = 'Today\'s overview ready';
+                  detail = `${events.filter(e => e.isPast).length} completed • ${events.filter(e => !e.isPast).length} upcoming`;
+                } else if ((lower.includes('schedule') && lower.includes('meeting')) || lower.includes('schedule a')) {
+                  title = 'Meeting Scheduled';
+                  subtitle = 'Tomorrow at 2:00 PM';
+                  detail = 'Conference Room B • Calendar invite sent • No conflicts';
+                } else if (lower.includes('free') || lower.includes('next free') || lower.includes('available')) {
+                  title = 'Free Slots Found';
+                  subtitle = '2 open blocks today';
+                  detail = 'Next free: 10:00 AM – 12:30 PM (2.5 hours)';
+                } else if (lower.includes('block') || lower.includes('lunch')) {
+                  title = 'Lunch Hour Blocked';
+                  subtitle = '12:00 PM – 1:00 PM';
+                  detail = 'Calendar event created • Auto-decline enabled';
+                }
+                return (
+                  <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 24 }}>📅</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>{subtitle}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {detail}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {activeScenario === 'order' && (
                 <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
@@ -390,35 +475,77 @@ export default function WorkspaceContainer() {
                 </div>
               )}
 
-              {activeScenario === 'finance' && (
-                <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 24 }}>📈</span>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>Alert Set</div>
-                      <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>NVDA target: $850.00</div>
+              {activeScenario === 'finance' && (() => {
+                const lower = userPrompt.toLowerCase();
+                if (lower.includes('wallet') || lower.includes('balance') || lower.includes('card') || lower.includes('pay') || lower.includes('transaction')) {
+                  return (
+                    <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                        <span style={{ fontSize: 24 }}>💳</span>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 600 }}>Payment Processed</div>
+                          <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>Apple Card Balance Paid</div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        Payment successful • Updated available credit to $10,000.00
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 24 }}>📈</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>Alert Set</div>
+                        <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>NVDA target: $850.00</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      Portfolio: $24,830 (+$142 today) • You&apos;ll be notified when NVDA hits $850
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Portfolio: $24,830 (+$142 today) • You&apos;ll be notified when NVDA hits $850
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
-              {activeScenario === 'navigation' && (
-                <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 24 }}>🗺️</span>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>Navigation Started</div>
-                      <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>Walking directions active</div>
+              {activeScenario === 'navigation' && (() => {
+                const lower = userPrompt.toLowerCase();
+                let title = 'Navigation Started';
+                let subtitle = 'Turn-by-turn active';
+                let detail = 'Route calculated · Following optimal path';
+                if (lower.includes('downtown')) {
+                  title = 'Navigating to Downtown';
+                  subtitle = 'Walking directions active';
+                  detail = 'Downtown SF · 18 min walk · 0.9 mi';
+                } else if (lower.includes('coffee') || lower.includes('nearest')) {
+                  title = 'Navigating to Philz Coffee';
+                  subtitle = 'Walking directions active';
+                  detail = 'Philz Coffee · 8 min walk via Market St';
+                } else if (lower.includes('work') || lower.includes('office') || lower.includes('directions to')) {
+                  title = 'Navigating to Work';
+                  subtitle = 'Driving directions active';
+                  detail = 'Office · 22 min via 101 S · Light traffic';
+                } else if (lower.includes('airport') || lower.includes('how far')) {
+                  title = 'SFO Airport — 13 mi away';
+                  subtitle = 'Distance calculated';
+                  detail = 'Driving: 25 min · BART: 38 min · Rideshare: 22 min';
+                }
+                return (
+                  <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 24 }}>🗺️</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>{subtitle}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {detail}
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Philz Coffee • 8 min walk via Market St
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {activeScenario === 'travel' && (
                 <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
@@ -437,20 +564,68 @@ export default function WorkspaceContainer() {
                 </div>
               )}
 
-              {activeScenario === 'general' && (
-                <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 24 }}>✨</span>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>Task Complete</div>
-                      <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>Request handled</div>
+              {activeScenario === 'general' && (() => {
+                const lower = userPrompt.toLowerCase();
+                let icon = '✨';
+                let title = 'Task Complete';
+                let subtitle = 'Request handled';
+                let detail = 'Saved to memory feed';
+
+                if (lower.includes('take a photo') || lower.includes('camera') || lower.includes('selfie') || lower.includes('video') || lower.includes('scan')) {
+                  icon = '📷';
+                  title = 'Media Captured';
+                  subtitle = 'Saved to Photos';
+                  detail = 'High-resolution media saved • Synced to iCloud';
+                } else if (lower.includes('safari') || lower.includes('search') || lower.includes('bookmark') || lower.includes('trending') || lower.includes('movie')) {
+                  icon = '🧭';
+                  title = 'Browsing Session';
+                  subtitle = 'Safari';
+                  detail = 'Web results displayed • Safari tab left open in background';
+                } else if (lower.includes('photos') || lower.includes('vacation') || lower.includes('collage') || lower.includes('gallery') || lower.includes('share photos')) {
+                  icon = '🖼️'; title = 'Photos Accessed'; subtitle = 'Photos app'; detail = 'Gallery requested • Albums ready to view';
+                } else if (lower.includes('music') || lower.includes('play') || lower.includes('listen') || lower.includes('lo-fi') || lower.includes('liked') || lower.includes('album') || lower.includes('drake')) {
+                  icon = '🎵'; title = 'Audio Playing'; subtitle = 'Apple Music'; detail = 'Background playback started • Playing on AirPods';
+                } else if (lower.includes('podcast')) {
+                  icon = '🎙️'; title = 'Podcast Playing'; subtitle = 'Apple Podcasts'; detail = 'Resumed latest episode • Synced playback';
+                } else if (lower.includes('news') || lower.includes('headline')) {
+                  icon = '📰'; title = 'News Briefing Delivered'; subtitle = 'Apple News'; detail = 'Top stories aggregated • Personalized feed ready';
+                } else if (lower.includes('book') || lower.includes('read') || lower.includes('novel')) {
+                  icon = '📚'; title = 'Book Opened'; subtitle = 'Apple Books'; detail = 'Reading session resumed • Progress saved';
+                } else if (lower.includes('note') || lower.includes('ideas list')) {
+                  icon = '📝'; title = 'Note Saved'; subtitle = 'Apple Notes'; detail = 'Note updated and saved to iCloud';
+                } else if (lower.includes('remind')) {
+                  icon = '✅'; title = 'Reminder Set'; subtitle = 'Reminders'; detail = 'Task scheduled • Notification configured';
+                } else if (lower.includes('file') || lower.includes('report') || lower.includes('download') || lower.includes('presentation') || lower.includes('document')) {
+                  icon = '📁'; title = 'File Opened'; subtitle = 'Files App'; detail = 'Document retrieved • Ready for editing';
+                } else if (lower.includes('weather') || lower.includes('rain') || lower.includes('forecast')) {
+                  icon = '🌤️'; title = 'Weather Checked'; subtitle = 'Weather App'; detail = 'Forecast generated • Radar available';
+                } else if (lower.includes('clock') || lower.includes('timer') || lower.includes('alarm') || lower.includes('time is') || lower.includes('stopwatch')) {
+                  icon = '⏱️'; title = 'Clock Action'; subtitle = 'Clock App'; detail = 'Timer/Alarm set and active';
+                } else if (lower.includes('calculate') || lower.includes('tip') || lower.includes('convert') || lower.includes('split') || lower.includes('mortgage')) {
+                  icon = '🧮'; title = 'Calculated'; subtitle = 'Calculator'; detail = 'Result copied to clipboard';
+                } else if (lower.includes('translate') || lower.includes('japanese') || lower.includes('french') || lower.includes('spanish')) {
+                  icon = '🌐'; title = 'Translated'; subtitle = 'Translate App'; detail = 'Text translated successfully';
+                } else if (lower.includes('health') || lower.includes('sleep') || lower.includes('weight') || lower.includes('steps')) {
+                  icon = '❤️'; title = 'Health Synced'; subtitle = 'Apple Health'; detail = 'Metrics retrieved and updated';
+                } else if (lower.includes('fitness') || lower.includes('run') || lower.includes('workout') || lower.includes('goal')) {
+                  icon = '🏃'; title = 'Workout Synced'; subtitle = 'Apple Fitness'; detail = 'Activity tracked on Apple Watch';
+                }
+
+                return (
+                  <div style={{ background: 'var(--bg-tertiary)', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 24 }}>{icon}</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--accent-green)' }}>{subtitle}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {detail}
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Saved to memory feed
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               <motion.button
                 whileTap={{ scale: 0.97 }}

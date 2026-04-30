@@ -119,7 +119,7 @@ export default function SettingsScreen() {
       inset: 0,
       overflowY: 'auto',
       overflowX: 'hidden',
-      paddingTop: 'max(var(--safe-area-top, 0px), 80px)',
+      paddingTop: 130,
       paddingBottom: 40,
     }}>
       {/* Header */}

@@ -488,27 +488,153 @@ export function getPostActionPills(scenario: string, now: Date = new Date()): Co
 
 // ─── Post-action memory items ───────────────────────────────────────────
 
-export function getApproveMemoryItem(scenario: string, now: Date = new Date()): MemoryItem | null {
+export function getApproveMemoryItem(scenario: string, now: Date = new Date(), userPrompt: string = ''): MemoryItem | null {
   const departTime = getCommuteDepartureTime(now);
   switch (scenario) {
     case 'commute':
       return { id: `m-${Date.now()}`, icon: '🚇', text: `BART ticket booked — $12.00. Departs ${departTime} from Powell St.`, time: 'Just now', type: 'action' };
-    case 'relationship':
+    case 'relationship': {
+      const lower = userPrompt.toLowerCase();
+      if (lower.includes('mom') && (lower.includes('message') || lower.includes('text'))) {
+        return { id: `m-${Date.now()}`, icon: '💬', text: 'Message sent to Mom — "Just thinking about you..."', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('john') || lower.includes('birthday')) {
+        return { id: `m-${Date.now()}`, icon: '💬', text: 'Message sent to John Doe — Happy birthday wishes.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('texts') || lower.includes('read')) {
+        return { id: `m-${Date.now()}`, icon: '💬', text: 'Unread messages checked — 4 messages marked as read.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('mom') && lower.includes('call')) {
+        return { id: `m-${Date.now()}`, icon: '📞', text: 'FaceTime Audio call with Mom — 4m 12s duration.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('recent') || lower.includes('missed')) {
+        return { id: `m-${Date.now()}`, icon: '📞', text: 'Returned missed call to Mom — 2m 05s duration.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('pizza') || lower.includes('nearest')) {
+        return { id: `m-${Date.now()}`, icon: '📞', text: "Called Tony's Pizza — 1m 30s duration.", time: 'Just now', type: 'action' };
+      }
       return { id: `m-${Date.now()}`, icon: '💬', text: 'Messages sent to Sarah — dinner cancelled, lunch Tue 12:30 proposed.', time: 'Just now', type: 'action' };
-    case 'email':
-      return { id: `m-${Date.now()}`, icon: '📧', text: 'Email reply sent to David Kim — deadline pushback to next Wednesday.', time: 'Just now', type: 'action' };
-    case 'schedule':
+    }
+    case 'email': {
+      const lower = userPrompt.toLowerCase();
+      if (lower.includes('boss') || lower.includes('summarize')) {
+        return { id: `m-${Date.now()}`, icon: '📧', text: 'Email reply sent to David Kim — deadline pushback to next Wednesday.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('draft') || lower.includes('follow-up')) {
+        return { id: `m-${Date.now()}`, icon: '📧', text: 'Follow-up email sent to Sarah Chen regarding Landing Page Assets.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('unread') || lower.includes('check')) {
+        return { id: `m-${Date.now()}`, icon: '📧', text: 'Inbox cleared — 3 unread messages processed and marked as read.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('reply') || lower.includes('latest')) {
+        return { id: `m-${Date.now()}`, icon: '📧', text: 'Reply sent to Alex Chen — acknowledged receipt of Latest Metrics Report.', time: 'Just now', type: 'action' };
+      }
+      return { id: `m-${Date.now()}`, icon: '📧', text: 'Email response sent.', time: 'Just now', type: 'action' };
+    }
+    case 'schedule': {
+      const lower = userPrompt.toLowerCase();
+      if ((lower.includes('what') && lower.includes('calendar')) || lower.includes('today')) {
+        return { id: `m-${Date.now()}`, icon: '📅', text: 'Calendar reviewed — full schedule overview generated.', time: 'Just now', type: 'action' };
+      }
+      if ((lower.includes('schedule') && lower.includes('meeting')) || lower.includes('schedule a')) {
+        return { id: `m-${Date.now()}`, icon: '📅', text: 'Meeting scheduled — tomorrow at 2:00 PM, Conference Room B. Invite sent.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('free') || lower.includes('next free') || lower.includes('available')) {
+        return { id: `m-${Date.now()}`, icon: '📅', text: 'Free slot found — next available: 10:00 AM (2.5 hour block).', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('block') || lower.includes('lunch')) {
+        return { id: `m-${Date.now()}`, icon: '📅', text: 'Lunch hour blocked — 12:00-1:00 PM. Auto-decline enabled.', time: 'Just now', type: 'action' };
+      }
       return { id: `m-${Date.now()}`, icon: '📅', text: 'Schedule optimized — moved Design Review to 2 PM, freed up 3-5 PM block.', time: 'Just now', type: 'action' };
+    }
     case 'order':
       return { id: `m-${Date.now()}`, icon: '🛒', text: 'Order placed — Oat Milk Latte + Avocado Toast from Blue Bottle. ETA 25 min.', time: 'Just now', type: 'action' };
-    case 'finance':
+    case 'finance': {
+      const lower = userPrompt.toLowerCase();
+      if (lower.includes('wallet') || lower.includes('balance') || lower.includes('card') || lower.includes('pay') || lower.includes('transaction')) {
+        return { id: `m-${Date.now()}`, icon: '💳', text: 'Checked Apple Card balance and recent transactions.', time: 'Just now', type: 'action' };
+      }
       return { id: `m-${Date.now()}`, icon: '📈', text: 'Portfolio report generated — up $142 today. NVDA alert set for $850 target.', time: 'Just now', type: 'action' };
-    case 'navigation':
-      return { id: `m-${Date.now()}`, icon: '🗺️', text: 'Navigation started — Philz Coffee, 8 min walk via Market St.', time: 'Just now', type: 'action' };
+    }
+    case 'navigation': {
+      const lower = userPrompt.toLowerCase();
+      if (lower.includes('downtown')) {
+        return { id: `m-${Date.now()}`, icon: '🗺️', text: 'Navigation started — Downtown SF, 18 min walk.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('coffee') || lower.includes('nearest')) {
+        return { id: `m-${Date.now()}`, icon: '🗺️', text: 'Navigation started — Philz Coffee, 8 min walk via Market St.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('work') || lower.includes('office') || lower.includes('directions to')) {
+        return { id: `m-${Date.now()}`, icon: '🗺️', text: 'Navigation started — Office, 22 min via 101 S.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('airport') || lower.includes('how far')) {
+        return { id: `m-${Date.now()}`, icon: '🗺️', text: 'Distance calculated — SFO Airport is 13 miles away (25 min drive).', time: 'Just now', type: 'action' };
+      }
+      return { id: `m-${Date.now()}`, icon: '🗺️', text: 'Navigation started — route calculated.', time: 'Just now', type: 'action' };
+    }
     case 'travel':
       return { id: `m-${Date.now()}`, icon: '✈️', text: 'Flight booked — United SFO→JFK, $289 nonstop. Confirmation sent to email.', time: 'Just now', type: 'action' };
-    case 'general':
+    case 'general': {
+      const lower = userPrompt.toLowerCase();
+      if (lower.includes('take a photo') || lower.includes('camera') || lower.includes('selfie') || lower.includes('video') || lower.includes('scan')) {
+        let text = 'Captured a photo with Camera.';
+        if (lower.includes('selfie')) text = 'Captured a selfie with Front Camera.';
+        if (lower.includes('video')) text = 'Recorded a 4K video (60fps) with Camera.';
+        if (lower.includes('scan')) text = 'Scanned a document and saved to Files.';
+        return { id: `m-${Date.now()}`, icon: '📷', text: text, time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('safari') || lower.includes('search') || lower.includes('bookmark') || lower.includes('trending') || lower.includes('movie')) {
+        let text = 'Browsed the web using Safari.';
+        if (lower.includes('restaurant')) text = 'Searched Safari for the best restaurants in San Francisco.';
+        if (lower.includes('bookmark')) text = 'Opened Safari Bookmarks manager.';
+        if (lower.includes('trending')) text = 'Checked trending searches in Safari.';
+        if (lower.includes('movie')) text = 'Looked up movie showtimes in Safari.';
+        return { id: `m-${Date.now()}`, icon: '🧭', text: text, time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('photos') || lower.includes('vacation') || lower.includes('collage') || lower.includes('gallery') || lower.includes('share photos')) {
+        return { id: `m-${Date.now()}`, icon: '🖼️', text: 'Viewed Photos gallery.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('music') || lower.includes('play') || lower.includes('listen') || lower.includes('lo-fi') || lower.includes('liked') || lower.includes('album') || lower.includes('drake')) {
+        return { id: `m-${Date.now()}`, icon: '🎵', text: 'Started playing music.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('podcast')) {
+        return { id: `m-${Date.now()}`, icon: '🎙️', text: 'Resumed podcast playback.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('news') || lower.includes('headline')) {
+        return { id: `m-${Date.now()}`, icon: '📰', text: 'Checked today\'s top news headlines.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('book') || lower.includes('read') || lower.includes('novel')) {
+        return { id: `m-${Date.now()}`, icon: '📚', text: 'Opened Apple Books.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('note') || lower.includes('ideas list')) {
+        return { id: `m-${Date.now()}`, icon: '📝', text: 'Saved a new note to Apple Notes.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('remind')) {
+        return { id: `m-${Date.now()}`, icon: '✅', text: 'Set a new reminder in Apple Reminders.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('file') || lower.includes('report') || lower.includes('download') || lower.includes('presentation') || lower.includes('document')) {
+        return { id: `m-${Date.now()}`, icon: '📁', text: 'Opened a document from Files app.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('weather') || lower.includes('rain') || lower.includes('forecast')) {
+        return { id: `m-${Date.now()}`, icon: '🌤️', text: 'Checked the weather forecast.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('clock') || lower.includes('timer') || lower.includes('alarm') || lower.includes('time is') || lower.includes('stopwatch')) {
+        return { id: `m-${Date.now()}`, icon: '⏱️', text: 'Set a timer or alarm.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('calculate') || lower.includes('tip') || lower.includes('convert') || lower.includes('split') || lower.includes('mortgage')) {
+        return { id: `m-${Date.now()}`, icon: '🧮', text: 'Performed a calculation.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('translate') || lower.includes('japanese') || lower.includes('french') || lower.includes('spanish')) {
+        return { id: `m-${Date.now()}`, icon: '🌐', text: 'Translated text.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('health') || lower.includes('sleep') || lower.includes('weight') || lower.includes('steps')) {
+        return { id: `m-${Date.now()}`, icon: '❤️', text: 'Checked Apple Health data.', time: 'Just now', type: 'action' };
+      }
+      if (lower.includes('fitness') || lower.includes('run') || lower.includes('workout') || lower.includes('goal')) {
+        return { id: `m-${Date.now()}`, icon: '🏃', text: 'Logged activity in Apple Fitness.', time: 'Just now', type: 'action' };
+      }
       return { id: `m-${Date.now()}`, icon: '✨', text: 'Task completed — result saved to memory.', time: 'Just now', type: 'action' };
+    }
     default:
       return null;
   }

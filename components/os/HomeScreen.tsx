@@ -12,7 +12,7 @@ export default function HomeScreen() {
 
   const memoryItems = useOmniStore((s) => s.memoryItems);
   const goToSettings = useOmniStore((s) => s.goToSettings);
-  const goToChat = useOmniStore((s) => s.goToChat);
+  const goToAppLibrary = useOmniStore((s) => s.goToAppLibrary);
   const [greeting, setGreeting] = useState(getGreeting());
 
   // Update greeting when time-of-day changes
@@ -50,10 +50,10 @@ export default function HomeScreen() {
           display: 'flex',
           gap: 8,
         }}>
-          {/* Chat button */}
+          {/* App Library button */}
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={() => { tapSound(); goToChat(); }}
+            onClick={() => { tapSound(); goToAppLibrary(); }}
             style={{
               background: 'var(--bg-secondary)',
               border: '1px solid var(--separator)',
@@ -66,10 +66,13 @@ export default function HomeScreen() {
               cursor: 'pointer',
               color: 'var(--text-secondary)',
             }}
-            aria-label="Chat"
+            aria-label="App Library"
           >
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
             </svg>
           </motion.button>
 

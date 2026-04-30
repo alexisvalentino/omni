@@ -21,6 +21,33 @@ import {
   getGreeting,
 } from '../services/timeContext';
 
+export const GLOBAL_APP_SUGGESTIONS: Record<string, string[]> = {
+  'Maps': ['Navigate to downtown', 'Find nearest coffee shop', 'Get directions to work', 'How far is the airport?'],
+  'Calendar': ["What's on my calendar today?", 'Schedule a meeting tomorrow at 2 PM', 'When is my next free slot?', 'Block off lunch hour'],
+  'Mail': ["Summarize my boss's email", 'Draft a follow-up email', 'Check my unread mail', 'Reply to the latest email'],
+  'Messages': ["Tell Sarah I can't make dinner", 'Send a message to Mom', 'Text John happy birthday', 'Read my latest texts'],
+  'Phone': ['Call Mom', 'Dial my recent contacts', 'Return missed calls', 'Call the nearest pizza place'],
+  'Camera': ['Take a photo', 'Scan a document', 'Take a selfie', 'Record a video'],
+  'Photos': ['Show my recent photos', 'Find photos from last vacation', 'Create a photo collage', 'Share photos with friends'],
+  'Music': ['Play my focus playlist', 'Play some lo-fi beats', 'Shuffle my liked songs', 'Play the latest album by Drake'],
+  'Podcasts': ['Play the latest tech podcast', 'Resume my podcast', 'Find a new science podcast', 'What are trending podcasts?'],
+  'News': ["What's in the news today?", 'Show me tech news', 'Any breaking news?', "Show today's headlines"],
+  'Books': ['Continue reading my book', 'Find a new sci-fi novel', 'Show my reading list', 'Read book summary'],
+  'Notes': ['Create a new note', 'Show my recent notes', 'Add to my ideas list', 'Search my notes'],
+  'Reminders': ['Remind me to call dentist at 3 PM', 'Show my pending reminders', 'Set a reminder for tomorrow', 'Clear completed reminders'],
+  'Files': ['Find the Q3 report file', 'Show recent downloads', 'Search for presentation files', 'Open shared documents'],
+  'Weather': ["What's the weather today?", 'Will it rain this weekend?', 'Weather forecast for NYC', '10-day forecast'],
+  'Clock': ['Set a timer for 25 minutes', 'Set an alarm for 7 AM', "What time is it in Tokyo?", 'Start a stopwatch'],
+  'Calculator': ['Calculate 15% tip on $86', 'Convert 100 USD to EUR', 'Split the bill for 4 people', 'Calculate mortgage payment'],
+  'Wallet': ['Show my card balance', 'Recent transactions', 'Add a new card', 'Pay with Apple Pay'],
+  'Stocks': ['How are my stocks doing?', "How's AAPL today?", 'Show market overview', 'Check my portfolio returns'],
+  'Health': ['How many steps today?', 'Show my sleep data', 'Log my weight', 'Weekly health summary'],
+  'Fitness': ['Log a 30-min run', 'Start a workout', 'Show my weekly activity', 'Set a fitness goal'],
+  'Safari': ['Search the web for best restaurants', 'Open my bookmarks', 'What are trending searches?', 'Look up movie showtimes'],
+  'Translate': ['Translate hello to Japanese', 'How do you say thank you in French?', 'Translate this menu to English', 'Spanish to English'],
+  'Omni': ['Hey Omni!', "What's my schedule?", 'Check my email', "How's the weather?"],
+};
+
 export type ContextPill = {
   id: string;
   icon: string;
@@ -121,6 +148,7 @@ export interface OmniState {
 
   // Predictive suggestions
   suggestions: string[];
+  matchedApps: AppItem[];
   showSuggestions: boolean;
 
   // App screen state
@@ -184,65 +212,47 @@ function matchScenario(input: string): ScenarioId {
   const lower = input.toLowerCase();
   // Travel / flight booking — check BEFORE commute so "book flight" doesn't match commute's 'flight' keyword
   if ((lower.includes('book') && lower.includes('flight')) || lower.includes('book flight') || lower.includes('rebook') || (lower.includes('price') && lower.includes('drop')) || lower.includes('flight deal') || lower.includes('cheap flight')) return 'travel';
-  // Commute / transport (immediate navigation, getting to a place)
+  // Navigation / Maps — check BEFORE commute so distance/direction queries about airports don't trigger commute
+  if (lower.includes('navigate') || lower.includes('direction') || lower.includes('nearest') || lower.includes('where is') || lower.includes('map') || lower.includes('nearby') || lower.includes('find near') || lower.includes('walk to') || lower.includes('how do i get') || lower.includes('how far') || lower.includes('downtown') || lower.includes('distance') || lower.includes('route to') || lower.includes('way to')) return 'navigation';
+  // Commute / transport (booking rides, catching flights, transit)
   if (lower.includes('airport') || lower.includes('commute') || lower.includes('get me to') || lower.includes('uber') || lower.includes('bart') || lower.includes('drive me') || lower.includes('traffic')) return 'commute';
-  // Relationship / messaging
-  if (lower.includes('sarah') || lower.includes('dinner') || lower.includes('tell ') || lower.includes('message') || lower.includes('text ') || lower.includes('call ')) return 'relationship';
+  // Relationship / messaging / phone
+  if (lower.includes('sarah') || lower.includes('dinner') || lower.includes('tell ') || lower.includes('message') || lower.includes('text ') || lower.includes('texts') || lower.includes('call') || lower.includes('dial') || lower.includes('contact')) return 'relationship';
   // Email
-  if (lower.includes('email') || lower.includes('boss') || lower.includes('summarize') || lower.includes('draft') || lower.includes('inbox') || lower.includes('mail') || lower.includes('reply')) return 'email';
+  if (lower.includes('email') || lower.includes('boss') || lower.includes('summarize') || lower.includes('draft') || lower.includes('inbox') || lower.includes('mail') || lower.includes('reply') || lower.includes('unread') || lower.includes('follow-up')) return 'email';
   // Schedule / calendar
-  if (lower.includes('calendar') || lower.includes('schedule') || lower.includes('meeting') || lower.includes('agenda') || lower.includes('remind') || lower.includes('alarm') || lower.includes('timer') || lower.includes('clock')) return 'schedule';
+  if (lower.includes('calendar') || lower.includes('schedule') || lower.includes('meeting') || lower.includes('agenda') || lower.includes('free slot') || lower.includes('block off') || lower.includes('block time') || lower.includes('lunch hour')) return 'schedule';
   // Order / food
   if (lower.includes('order') || lower.includes('grocery') || lower.includes('food') || lower.includes('coffee') || lower.includes('deliver') || lower.includes('restaurant') || lower.includes('buy')) return 'order';
   // Finance
-  if (lower.includes('stock') || lower.includes('portfolio') || lower.includes('invest') || lower.includes('market') || lower.includes('aapl') || lower.includes('wallet') || lower.includes('balance') || lower.includes('card') || lower.includes('pay') || lower.includes('tip') || lower.includes('calculate')) return 'finance';
-  // Navigation
-  if (lower.includes('navigate') || lower.includes('direction') || lower.includes('nearest') || lower.includes('where is') || lower.includes('map') || lower.includes('nearby') || lower.includes('find near') || lower.includes('walk to') || lower.includes('how do i get')) return 'navigation';
-  // Travel (standalone keyword — after specific booking check above, catch remaining flight/hotel/trip mentions)
+  if (lower.includes('stock') || lower.includes('portfolio') || lower.includes('invest') || lower.includes('market') || lower.includes('aapl') || lower.includes('wallet') || lower.includes('balance') || lower.includes('card') || lower.includes('pay') || lower.includes('transaction')) return 'finance';
+  // Travel (standalone keyword — catch remaining flight/hotel/trip mentions)
   if (lower.includes('flight') || lower.includes('hotel') || lower.includes('reservation') || lower.includes('travel') || lower.includes('trip')) return 'travel';
   // General catch-all for misc app commands
-  if (lower.includes('photo') || lower.includes('camera') || lower.includes('music') || lower.includes('play') || lower.includes('podcast') || lower.includes('listen') || lower.includes('news') || lower.includes('book') || lower.includes('read') || lower.includes('note') || lower.includes('file') || lower.includes('weather') || lower.includes('translate') || lower.includes('step') || lower.includes('health') || lower.includes('fitness') || lower.includes('run') || lower.includes('safari')) return 'general';
+  if (lower.includes('photo') || lower.includes('camera') || lower.includes('music') || lower.includes('play') || lower.includes('podcast') || lower.includes('listen') || lower.includes('news') || lower.includes('book') || lower.includes('read') || lower.includes('note') || lower.includes('file') || lower.includes('weather') || lower.includes('translate') || lower.includes('step') || lower.includes('health') || lower.includes('fitness') || lower.includes('run') || lower.includes('safari') || lower.includes('scan') || lower.includes('selfie') || lower.includes('video') || lower.includes('search') || lower.includes('bookmark') || lower.includes('trending') || lower.includes('movie') || lower.includes('showtime') || lower.includes('vacation') || lower.includes('collage') || lower.includes('lo-fi') || lower.includes('album') || lower.includes('drake') || lower.includes('headline') || lower.includes('novel') || lower.includes('remind') || lower.includes('download') || lower.includes('presentation') || lower.includes('document') || lower.includes('clock') || lower.includes('timer') || lower.includes('alarm') || lower.includes('time is') || lower.includes('stopwatch') || lower.includes('calculate') || lower.includes('tip') || lower.includes('convert') || lower.includes('split') || lower.includes('mortgage') || lower.includes('rain') || lower.includes('forecast') || lower.includes('japanese') || lower.includes('french') || lower.includes('spanish') || lower.includes('sleep') || lower.includes('weight') || lower.includes('workout') || lower.includes('goal')) return 'general';
   return null;
 }
 
 function getSuggestions(input: string): string[] {
-  const lower = input.toLowerCase();
-  if (!lower || lower.length < 2) return [];
+  const lower = input.toLowerCase().trim();
+  if (!lower) return [];
 
-  if (lower.startsWith('get') || lower.startsWith('take') || lower.startsWith('go')) {
-    return ['Get me to the airport', 'Get an Uber to downtown', 'Get directions to work'];
-  }
-  if (lower.startsWith('tell') || lower.startsWith('mes') || lower.startsWith('sen') || lower.startsWith('tex')) {
-    return ["Tell Sarah I can't make dinner", 'Send a message to Mom', 'Text John happy birthday'];
-  }
-  if (lower.startsWith('sum') || lower.startsWith('ema') || lower.startsWith('dra') || lower.startsWith('rea')) {
-    return ["Summarize my boss's email and draft a pushback", 'Draft a follow-up email', 'Read my unread messages'];
-  }
-  if (lower.startsWith('ord') || lower.startsWith('buy') || lower.startsWith('sho')) {
-    return ['Order usual coffee', 'Order from UberEats', 'Order groceries'];
-  }
-  if (lower.startsWith('pla') || lower.startsWith('mus') || lower.startsWith('lis')) {
-    return ['Play my focus playlist', 'Play the latest podcast', 'Listen to lo-fi beats'];
-  }
-  if (lower.startsWith('wha') || lower.startsWith('how') || lower.startsWith('che')) {
-    return ["What's the weather?", "What's on my calendar?", 'Check my stocks', "How's the market?"];
-  }
-  if (lower.startsWith('set') || lower.startsWith('rem') || lower.startsWith('ala')) {
-    return ['Set a timer for 25 min', 'Remind me to call dentist at 3 PM', 'Set an alarm for 7 AM'];
-  }
-  if (lower.startsWith('cal')) {
-    return ['Calculate tip on $86', "What's on my calendar today?", 'Call Mom'];
-  }
-  if (lower.startsWith('nav') || lower.startsWith('dir') || lower.startsWith('fin')) {
-    return ['Navigate to downtown', 'Find the nearest coffee shop', 'Find the Q3 report'];
-  }
-  if (lower.startsWith('boo') || lower.startsWith('res') || lower.startsWith('tra')) {
-    return ['Book a flight to NYC', 'Reserve a table for tonight', 'Track my package'];
-  }
-  return ['Get me to the airport', "Tell Sarah I can't make dinner", "Summarize my boss's email", "What's on my calendar?"];
+  const allSuggestions = Object.values(GLOBAL_APP_SUGGESTIONS).flat();
+  
+  // Sort matches to prioritize ones that start with the input
+  const matches = allSuggestions.filter(s => s.toLowerCase().includes(lower)).sort((a, b) => {
+    const aStarts = a.toLowerCase().startsWith(lower);
+    const bStarts = b.toLowerCase().startsWith(lower);
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+    return 0;
+  });
+
+  return Array.from(new Set(matches)).slice(0, 3);
 }
 
-function getScenarioData(scenario: ScenarioId) {
+function getScenarioData(scenario: ScenarioId, command: string = '') {
+  const lower = command.toLowerCase();
   switch (scenario) {
     case 'commute':
       return {
@@ -255,29 +265,216 @@ function getScenarioData(scenario: ScenarioId) {
         message: "I'll check current traffic, compare your options between Uber and BART, and book the fastest route to SFO.",
         pills: getCommuteScenarioPills(),
       };
-    case 'relationship':
+    case 'relationship': {
+      // Prompt-aware: Messages and Phone queries
+      if (lower.includes('dinner') || lower.includes('sarah')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Draft cancellation text', status: 'pending' as const },
+            { id: 's2', label: 'Check calendar for next week', status: 'pending' as const },
+            { id: 's3', label: 'Propose alternate time', status: 'pending' as const },
+            { id: 's4', label: 'Suggest highly-rated restaurant', status: 'pending' as const },
+          ],
+          message: "I'll draft a polite cancellation for dinner tonight, find an open lunch slot next week, and suggest a restaurant.",
+          pills: getRelationshipScenarioPills(),
+        };
+      }
+      if (lower.includes('mom') && (lower.includes('message') || lower.includes('text'))) {
+        return {
+          steps: [
+            { id: 's1', label: 'Find Mom in contacts', status: 'pending' as const },
+            { id: 's2', label: 'Open new iMessage draft', status: 'pending' as const },
+            { id: 's3', label: 'Listen for dictation', status: 'pending' as const },
+            { id: 's4', label: 'Send message', status: 'pending' as const },
+          ],
+          message: "I'm ready. What would you like to say to Mom?",
+          pills: getRelationshipScenarioPills(),
+        };
+      }
+      if (lower.includes('john') || lower.includes('birthday')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Find John in contacts', status: 'pending' as const },
+            { id: 's2', label: 'Generate happy birthday message', status: 'pending' as const },
+            { id: 's3', label: 'Add celebratory emoji', status: 'pending' as const },
+            { id: 's4', label: 'Prepare for approval', status: 'pending' as const },
+          ],
+          message: "I've drafted a fun happy birthday message for John.",
+          pills: getRelationshipScenarioPills(),
+        };
+      }
+      if (lower.includes('texts') || lower.includes('read')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Retrieve recent messages', status: 'pending' as const },
+            { id: 's2', label: 'Identify unread conversations', status: 'pending' as const },
+            { id: 's3', label: 'Summarize text threads', status: 'pending' as const },
+            { id: 's4', label: 'Prepare quick replies', status: 'pending' as const },
+          ],
+          message: "I'll pull up your latest unread texts and summarize them for you.",
+          pills: getRelationshipScenarioPills(),
+        };
+      }
+      if (lower.includes('mom') && lower.includes('call')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Find Mom in contacts', status: 'pending' as const },
+            { id: 's2', label: 'Check current cellular signal', status: 'pending' as const },
+            { id: 's3', label: 'Initiate FaceTime Audio', status: 'pending' as const },
+            { id: 's4', label: 'Connect call', status: 'pending' as const },
+          ],
+          message: "Calling Mom on FaceTime Audio...",
+          pills: getRelationshipScenarioPills(),
+        };
+      }
+      if (lower.includes('recent') || lower.includes('missed')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Access phone app history', status: 'pending' as const },
+            { id: 's2', label: 'Identify recent or missed calls', status: 'pending' as const },
+            { id: 's3', label: 'Display call log', status: 'pending' as const },
+            { id: 's4', label: 'Wait for callback selection', status: 'pending' as const },
+          ],
+          message: "Here are your recent missed calls. Who would you like to call back?",
+          pills: getRelationshipScenarioPills(),
+        };
+      }
+      if (lower.includes('pizza') || lower.includes('nearest')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Search Maps for nearby pizza', status: 'pending' as const },
+            { id: 's2', label: 'Extract highest-rated option', status: 'pending' as const },
+            { id: 's3', label: 'Retrieve phone number', status: 'pending' as const },
+            { id: 's4', label: 'Initiate call', status: 'pending' as const },
+          ],
+          message: "I found Tony's Pizza nearby. Calling them now...",
+          pills: getRelationshipScenarioPills(),
+        };
+      }
       return {
         steps: [
-          { id: 's1', label: 'Compose polite cancellation message', status: 'pending' as const },
-          { id: 's2', label: 'Scan calendar for lunch openings', status: 'pending' as const },
-          { id: 's3', label: 'Draft lunch invite with suggestion', status: 'pending' as const },
-          { id: 's4', label: 'Prepare messages for approval', status: 'pending' as const },
+          { id: 's1', label: 'Identify contact', status: 'pending' as const },
+          { id: 's2', label: 'Determine communication method', status: 'pending' as const },
+          { id: 's3', label: 'Draft or initiate action', status: 'pending' as const },
+          { id: 's4', label: 'Complete request', status: 'pending' as const },
         ],
-        message: "I'll draft a polite cancellation for dinner tonight, find an open lunch slot next week, and suggest a restaurant.",
+        message: "I'll handle that communication for you.",
         pills: getRelationshipScenarioPills(),
       };
-    case 'email':
+    }
+    case 'email': {
+      // Prompt-aware: different steps & messages for each Mail query
+      if (lower.includes('boss') || lower.includes('summarize')) {
+        return {
+          steps: [
+            { id: 's1', label: "Retrieve and analyze boss's email", status: 'pending' as const },
+            { id: 's2', label: 'Extract key points & deadline', status: 'pending' as const },
+            { id: 's3', label: 'Generate summary brief', status: 'pending' as const },
+            { id: 's4', label: 'Draft polite pushback response', status: 'pending' as const },
+          ],
+          message: "I'll read through the email, pull out the key asks and the deadline, then draft a professional pushback for your review.",
+          pills: getEmailScenarioPills(),
+        };
+      }
+      if (lower.includes('draft') || lower.includes('follow-up')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Identify recent correspondence', status: 'pending' as const },
+            { id: 's2', label: 'Determine missing action items', status: 'pending' as const },
+            { id: 's3', label: 'Draft follow-up email', status: 'pending' as const },
+            { id: 's4', label: 'Review tone and clarity', status: 'pending' as const },
+          ],
+          message: "I'll check who you need to follow up with and draft a polite email checking in on their progress.",
+          pills: getEmailScenarioPills(),
+        };
+      }
+      if (lower.includes('unread') || lower.includes('check')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Scan inbox for unread messages', status: 'pending' as const },
+            { id: 's2', label: 'Filter out newsletters & spam', status: 'pending' as const },
+            { id: 's3', label: 'Identify high-priority senders', status: 'pending' as const },
+            { id: 's4', label: 'Summarize unread inbox', status: 'pending' as const },
+          ],
+          message: "I'll scan your inbox, filter out the noise, and show you only the important unread messages.",
+          pills: getEmailScenarioPills(),
+        };
+      }
+      if (lower.includes('reply') || lower.includes('latest')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Fetch latest received email', status: 'pending' as const },
+            { id: 's2', label: 'Analyze context and tone', status: 'pending' as const },
+            { id: 's3', label: 'Draft context-aware reply', status: 'pending' as const },
+            { id: 's4', label: 'Prepare for your review', status: 'pending' as const },
+          ],
+          message: "I'll look at the latest email you received and draft a contextually appropriate reply.",
+          pills: getEmailScenarioPills(),
+        };
+      }
+      // Fallback email
       return {
         steps: [
-          { id: 's1', label: "Retrieve and analyze boss's email", status: 'pending' as const },
-          { id: 's2', label: 'Extract key points & deadline', status: 'pending' as const },
-          { id: 's3', label: 'Generate summary brief', status: 'pending' as const },
-          { id: 's4', label: 'Draft polite pushback response', status: 'pending' as const },
+          { id: 's1', label: "Retrieve and analyze email", status: 'pending' as const },
+          { id: 's2', label: 'Extract key points', status: 'pending' as const },
+          { id: 's3', label: 'Generate summary', status: 'pending' as const },
+          { id: 's4', label: 'Draft response', status: 'pending' as const },
         ],
-        message: "I'll read through the email, pull out the key asks and the deadline, then draft a professional pushback for your review.",
+        message: "I'll review the email and prepare a response.",
         pills: getEmailScenarioPills(),
       };
-    case 'schedule':
+    }
+    case 'schedule': {
+      // Prompt-aware: different steps & messages for each Calendar query
+      if (lower.includes('what') && lower.includes('calendar') || lower.includes('today')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Pull today\'s calendar events', status: 'pending' as const },
+            { id: 's2', label: 'Check which events are done', status: 'pending' as const },
+            { id: 's3', label: 'Identify upcoming commitments', status: 'pending' as const },
+            { id: 's4', label: 'Prepare today\'s schedule overview', status: 'pending' as const },
+          ],
+          message: "I'll pull your full calendar for today, check what's done, and give you a clear rundown of what's ahead.",
+          pills: getScheduleScenarioPills(),
+        };
+      }
+      if (lower.includes('schedule') && lower.includes('meeting') || lower.includes('schedule a')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Check calendar for conflicts', status: 'pending' as const },
+            { id: 's2', label: 'Find available time slots', status: 'pending' as const },
+            { id: 's3', label: 'Create meeting event', status: 'pending' as const },
+            { id: 's4', label: 'Send calendar invite', status: 'pending' as const },
+          ],
+          message: "I'll check for conflicts, find the right slot, create the meeting, and send out invites.",
+          pills: getScheduleScenarioPills(),
+        };
+      }
+      if (lower.includes('free') || lower.includes('next free') || lower.includes('available')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Scan all events & commitments', status: 'pending' as const },
+            { id: 's2', label: 'Map out busy vs. free time', status: 'pending' as const },
+            { id: 's3', label: 'Identify largest open blocks', status: 'pending' as const },
+            { id: 's4', label: 'Present free slot options', status: 'pending' as const },
+          ],
+          message: "I'll scan your entire calendar and find your next available free slot.",
+          pills: getScheduleScenarioPills(),
+        };
+      }
+      if (lower.includes('block') || lower.includes('lunch')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Check lunch hour availability', status: 'pending' as const },
+            { id: 's2', label: 'Verify no conflicts at 12-1 PM', status: 'pending' as const },
+            { id: 's3', label: 'Create "Lunch" calendar block', status: 'pending' as const },
+            { id: 's4', label: 'Set auto-decline for new invites', status: 'pending' as const },
+          ],
+          message: "I'll block off your lunch hour, check for conflicts, and auto-decline any overlapping invites.",
+          pills: getScheduleScenarioPills(),
+        };
+      }
+      // Fallback schedule
       return {
         steps: [
           { id: 's1', label: 'Scan today\'s calendar events', status: 'pending' as const },
@@ -288,6 +485,7 @@ function getScenarioData(scenario: ScenarioId) {
         message: "I'll pull your full calendar, check for conflicts, find free slots, and give you an optimized rundown of your day.",
         pills: getScheduleScenarioPills(),
       };
+    }
     case 'order':
       return {
         steps: [
@@ -299,7 +497,19 @@ function getScenarioData(scenario: ScenarioId) {
         message: "I'll check your past orders, find any available discounts, and place the order for you. Estimated delivery in 35 min.",
         pills: getOrderScenarioPills(),
       };
-    case 'finance':
+    case 'finance': {
+      if (lower.includes('wallet') || lower.includes('balance') || lower.includes('card') || lower.includes('pay') || lower.includes('transaction')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Authenticate Apple Wallet', status: 'pending' as const },
+            { id: 's2', label: 'Retrieve payment methods', status: 'pending' as const },
+            { id: 's3', label: 'Fetch recent transactions', status: 'pending' as const },
+            { id: 's4', label: 'Prepare payment/balance UI', status: 'pending' as const },
+          ],
+          message: "Opening Apple Wallet...",
+          pills: getFinanceScenarioPills(),
+        };
+      }
       return {
         steps: [
           { id: 's1', label: 'Pull real-time portfolio data', status: 'pending' as const },
@@ -310,17 +520,69 @@ function getScenarioData(scenario: ScenarioId) {
         message: "I'll pull your current holdings, check today's market activity, and flag anything that needs attention.",
         pills: getFinanceScenarioPills(),
       };
-    case 'navigation':
+    }
+    case 'navigation': {
+      // Prompt-aware: different steps & messages for each Maps query
+      if (lower.includes('downtown')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Locate Downtown SF from your position', status: 'pending' as const },
+            { id: 's2', label: 'Compare walking, transit & driving', status: 'pending' as const },
+            { id: 's3', label: 'Calculate fastest route', status: 'pending' as const },
+            { id: 's4', label: 'Prepare turn-by-turn directions', status: 'pending' as const },
+          ],
+          message: "I'll find the quickest way to get you to Downtown SF and compare your transport options.",
+          pills: getNavigationScenarioPills(),
+        };
+      }
+      if (lower.includes('coffee') || lower.includes('nearest')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Search coffee shops near you', status: 'pending' as const },
+            { id: 's2', label: 'Compare ratings & walking distance', status: 'pending' as const },
+            { id: 's3', label: 'Rank by best overall match', status: 'pending' as const },
+            { id: 's4', label: 'Prepare directions to top pick', status: 'pending' as const },
+          ],
+          message: "I'll scan for coffee shops nearby, compare ratings and distance, and recommend the best option.",
+          pills: getNavigationScenarioPills(),
+        };
+      }
+      if (lower.includes('work') || lower.includes('office') || lower.includes('directions to')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Look up your saved work address', status: 'pending' as const },
+            { id: 's2', label: 'Check live traffic conditions', status: 'pending' as const },
+            { id: 's3', label: 'Compare driving, transit & biking', status: 'pending' as const },
+            { id: 's4', label: 'Generate optimal route', status: 'pending' as const },
+          ],
+          message: "I'll check traffic and find the best route to your office right now.",
+          pills: getNavigationScenarioPills(),
+        };
+      }
+      if (lower.includes('airport') || lower.includes('how far')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Identify nearest airport (SFO)', status: 'pending' as const },
+            { id: 's2', label: 'Calculate distance from your location', status: 'pending' as const },
+            { id: 's3', label: 'Estimate travel time by each mode', status: 'pending' as const },
+            { id: 's4', label: 'Summarize distance & options', status: 'pending' as const },
+          ],
+          message: "I'll calculate the distance to SFO Airport and show you how long it takes by car, BART, and rideshare.",
+          pills: getNavigationScenarioPills(),
+        };
+      }
+      // Fallback navigation
       return {
         steps: [
-          { id: 's1', label: 'Search nearby locations', status: 'pending' as const },
-          { id: 's2', label: 'Compare ratings & distance', status: 'pending' as const },
-          { id: 's3', label: 'Calculate optimal route', status: 'pending' as const },
+          { id: 's1', label: 'Look up destination & current location', status: 'pending' as const },
+          { id: 's2', label: 'Calculate distance & travel time', status: 'pending' as const },
+          { id: 's3', label: 'Find optimal route & transport mode', status: 'pending' as const },
           { id: 's4', label: 'Start turn-by-turn navigation', status: 'pending' as const },
         ],
-        message: "I'll find the best options nearby, compare ratings and walking distance, and get you directions.",
+        message: "I'll pinpoint the destination, calculate the best route, and start navigation for you.",
         pills: getNavigationScenarioPills(),
       };
+    }
     case 'travel':
       return {
         steps: [
@@ -332,7 +594,209 @@ function getScenarioData(scenario: ScenarioId) {
         message: "I'll search for the best available flights, compare prices across airlines, and lock in the lowest fare before it goes back up.",
         pills: getTravelScenarioPills(),
       };
-    case 'general':
+    case 'general': {
+      // Prompt-aware: Camera and Safari queries
+      if (lower.includes('take a photo') || lower.includes('selfie') || lower.includes('video') || lower.includes('scan') || lower.includes('camera')) {
+        let action = 'Take a photo';
+        if (lower.includes('selfie')) action = 'Take a selfie';
+        if (lower.includes('video')) action = 'Record a video';
+        if (lower.includes('scan')) action = 'Scan a document';
+        return {
+          steps: [
+            { id: 's1', label: 'Open Camera app', status: 'pending' as const },
+            { id: 's2', label: 'Set appropriate mode', status: 'pending' as const },
+            { id: 's3', label: 'Adjust exposure and focus', status: 'pending' as const },
+            { id: 's4', label: 'Capture media', status: 'pending' as const },
+          ],
+          message: `Opening Camera to ${action.toLowerCase()}...`,
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('search') || lower.includes('bookmark') || lower.includes('trending') || lower.includes('movie') || lower.includes('safari') || lower.includes('web')) {
+        let message = "Opening Safari...";
+        if (lower.includes('restaurant')) message = "Searching Safari for the best restaurants nearby...";
+        if (lower.includes('bookmark')) message = "Opening your Safari bookmarks...";
+        if (lower.includes('trending')) message = "Pulling up trending searches in Safari...";
+        if (lower.includes('movie')) message = "Looking up movie showtimes in Safari...";
+        return {
+          steps: [
+            { id: 's1', label: 'Open Safari browser', status: 'pending' as const },
+            { id: 's2', label: 'Execute search query', status: 'pending' as const },
+            { id: 's3', label: 'Analyze top results', status: 'pending' as const },
+            { id: 's4', label: 'Display web page', status: 'pending' as const },
+          ],
+          message: message,
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('photos') || lower.includes('vacation') || lower.includes('collage') || lower.includes('gallery')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Search Photos library', status: 'pending' as const },
+            { id: 's2', label: 'Filter by query context', status: 'pending' as const },
+            { id: 's3', label: 'Process image selection', status: 'pending' as const },
+            { id: 's4', label: 'Display photo gallery', status: 'pending' as const },
+          ],
+          message: "Opening Photos...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('music') || lower.includes('play') || lower.includes('lo-fi') || lower.includes('liked') || lower.includes('album') || lower.includes('drake')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Open Music app', status: 'pending' as const },
+            { id: 's2', label: 'Retrieve requested track/playlist', status: 'pending' as const },
+            { id: 's3', label: 'Queue audio stream', status: 'pending' as const },
+            { id: 's4', label: 'Start playback', status: 'pending' as const },
+          ],
+          message: "Getting your music ready...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('podcast')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Open Podcasts app', status: 'pending' as const },
+            { id: 's2', label: 'Find requested episode', status: 'pending' as const },
+            { id: 's3', label: 'Sync playback position', status: 'pending' as const },
+            { id: 's4', label: 'Start podcast', status: 'pending' as const },
+          ],
+          message: "Pulling up your podcast...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('news') || lower.includes('headline')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Aggregate latest headlines', status: 'pending' as const },
+            { id: 's2', label: 'Filter by personal interests', status: 'pending' as const },
+            { id: 's3', label: 'Summarize top stories', status: 'pending' as const },
+            { id: 's4', label: 'Display News feed', status: 'pending' as const },
+          ],
+          message: "Checking the latest news...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('book') || lower.includes('read') || lower.includes('novel')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Access Books library', status: 'pending' as const },
+            { id: 's2', label: 'Locate requested title', status: 'pending' as const },
+            { id: 's3', label: 'Sync reading progress', status: 'pending' as const },
+            { id: 's4', label: 'Open book', status: 'pending' as const },
+          ],
+          message: "Opening your book...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('note') || lower.includes('ideas list')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Open Notes app', status: 'pending' as const },
+            { id: 's2', label: 'Search existing notes or create new', status: 'pending' as const },
+            { id: 's3', label: 'Draft content', status: 'pending' as const },
+            { id: 's4', label: 'Save note', status: 'pending' as const },
+          ],
+          message: "Getting your notes ready...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('remind')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Parse reminder trigger & time', status: 'pending' as const },
+            { id: 's2', label: 'Create new reminder entry', status: 'pending' as const },
+            { id: 's3', label: 'Set notification alert', status: 'pending' as const },
+            { id: 's4', label: 'Save to Reminders', status: 'pending' as const },
+          ],
+          message: "Managing your reminders...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('file') || lower.includes('report') || lower.includes('download') || lower.includes('presentation') || lower.includes('document')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Search file system', status: 'pending' as const },
+            { id: 's2', label: 'Filter by file type & date', status: 'pending' as const },
+            { id: 's3', label: 'Locate target document', status: 'pending' as const },
+            { id: 's4', label: 'Display file preview', status: 'pending' as const },
+          ],
+          message: "Searching for your files...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('weather') || lower.includes('rain') || lower.includes('forecast')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Get current location', status: 'pending' as const },
+            { id: 's2', label: 'Fetch meteorological data', status: 'pending' as const },
+            { id: 's3', label: 'Analyze forecast patterns', status: 'pending' as const },
+            { id: 's4', label: 'Generate weather summary', status: 'pending' as const },
+          ],
+          message: "Checking the weather...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('clock') || lower.includes('timer') || lower.includes('alarm') || lower.includes('time is') || lower.includes('stopwatch')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Open Clock app', status: 'pending' as const },
+            { id: 's2', label: 'Parse time request', status: 'pending' as const },
+            { id: 's3', label: 'Configure timer/alarm', status: 'pending' as const },
+            { id: 's4', label: 'Start clock function', status: 'pending' as const },
+          ],
+          message: "Setting that up in Clock...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('calculate') || lower.includes('tip') || lower.includes('convert') || lower.includes('split') || lower.includes('mortgage')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Parse mathematical expression', status: 'pending' as const },
+            { id: 's2', label: 'Apply required formulas', status: 'pending' as const },
+            { id: 's3', label: 'Compute exact result', status: 'pending' as const },
+            { id: 's4', label: 'Format calculation', status: 'pending' as const },
+          ],
+          message: "Calculating that for you...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('translate') || lower.includes('japanese') || lower.includes('french') || lower.includes('spanish')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Identify source text & language', status: 'pending' as const },
+            { id: 's2', label: 'Process translation model', status: 'pending' as const },
+            { id: 's3', label: 'Generate translated output', status: 'pending' as const },
+            { id: 's4', label: 'Format for text-to-speech', status: 'pending' as const },
+          ],
+          message: "Translating...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('health') || lower.includes('sleep') || lower.includes('weight')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Access HealthKit data', status: 'pending' as const },
+            { id: 's2', label: 'Compile requested metrics', status: 'pending' as const },
+            { id: 's3', label: 'Generate trend analysis', status: 'pending' as const },
+            { id: 's4', label: 'Format health summary', status: 'pending' as const },
+          ],
+          message: "Pulling your health data...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
+      if (lower.includes('fitness') || lower.includes('run') || lower.includes('workout') || lower.includes('goal')) {
+        return {
+          steps: [
+            { id: 's1', label: 'Open Fitness app', status: 'pending' as const },
+            { id: 's2', label: 'Sync Apple Watch activity', status: 'pending' as const },
+            { id: 's3', label: 'Configure workout type', status: 'pending' as const },
+            { id: 's4', label: 'Log or start session', status: 'pending' as const },
+          ],
+          message: "Setting up your fitness request...",
+          pills: getTimeAwareContextPills(),
+        };
+      }
       return {
         steps: [
           { id: 's1', label: 'Understand your request', status: 'pending' as const },
@@ -343,6 +807,7 @@ function getScenarioData(scenario: ScenarioId) {
         message: "I'll handle that for you. Give me a moment to work through it.",
         pills: getTimeAwareContextPills(),
       };
+    }
     default:
       return { steps: [], message: '', pills: defaultPills };
   }
@@ -375,6 +840,7 @@ const defaultApps: AppItem[] = [
   { id: 'a22', name: 'Books', icon: '📚', color: '#FF9500', category: 'Media' },
   { id: 'a23', name: 'Translate', icon: '🌐', color: '#007AFF', category: 'Utilities' },
   { id: 'a24', name: 'Settings', icon: '⚙️', color: '#8E8E93', category: 'Utilities' },
+  { id: 'a25', name: 'Omni', icon: '✨', color: '#8B5CF6', category: 'Productivity' },
 ];
 
 export const useOmniStore = create<OmniState>((set, get) => ({
@@ -402,6 +868,7 @@ export const useOmniStore = create<OmniState>((set, get) => ({
   memoryItems: defaultMemory,
   suggestions: [],
   showSuggestions: false,
+  matchedApps: [],
   activeAppName: '',
   activeAppSuggestions: [],
   proactiveCards: defaultProactiveCards,
@@ -418,13 +885,28 @@ export const useOmniStore = create<OmniState>((set, get) => ({
 
   setInputValue: (value) => {
     const suggestions = getSuggestions(value);
-    set({ inputValue: value, suggestions, showSuggestions: suggestions.length > 0 && value.length > 1 });
+    const trimmed = value.trim().toLowerCase();
+    const matchedApps = trimmed.length > 0 
+      ? get().apps.filter(app => app.name.toLowerCase().includes(trimmed))
+      : [];
+    set({ 
+      inputValue: value, 
+      suggestions, 
+      matchedApps,
+      showSuggestions: (suggestions.length > 0 || matchedApps.length > 0) && trimmed.length > 0 
+    });
   },
 
   submitCommand: (command) => {
+    if (command.toLowerCase().includes('hey omni') || command.toLowerCase() === 'hi omni') {
+      set({ activeScreen: 'chat', isWorkspaceOpen: false });
+      get().sendChatMessage(command);
+      return;
+    }
+
     const scenario = matchScenario(command);
     const effectiveScenario = scenario || 'general';
-    const data = getScenarioData(effectiveScenario);
+    const data = getScenarioData(effectiveScenario, command);
     set({
       activeScreen: 'workspace',
       isWorkspaceOpen: true,
@@ -437,6 +919,7 @@ export const useOmniStore = create<OmniState>((set, get) => ({
       inputValue: '',
       showSuggestions: false,
       suggestions: [],
+      matchedApps: [],
     });
   },
 
@@ -704,8 +1187,8 @@ export const useOmniStore = create<OmniState>((set, get) => ({
   },
 
   approveAction: () => {
-    const { activeScenario, memoryItems } = get();
-    const newMemory = activeScenario ? getApproveMemoryItem(activeScenario) : null;
+    const { activeScenario, memoryItems, userPrompt } = get();
+    const newMemory = activeScenario ? getApproveMemoryItem(activeScenario, new Date(), userPrompt) : null;
     const postPills = activeScenario ? getPostActionPills(activeScenario) : defaultPills;
 
     set({

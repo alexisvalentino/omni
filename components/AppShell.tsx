@@ -98,7 +98,6 @@ const AppShell = () => {
               <HomeSwiper
                 leftPage={<SuggestionsPage />}
                 centerPage={<HomeScreen />}
-                rightPage={<AppLibraryPage />}
               />
             </motion.div>
           )}

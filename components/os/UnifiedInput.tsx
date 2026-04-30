@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useOmniStore } from '../../store/omni';
+import { useOmniStore, GLOBAL_APP_SUGGESTIONS } from '../../store/omni';
 import { openSound, tapSound } from '../../services/sounds';
 
 export default function UnifiedInput() {
@@ -11,7 +11,11 @@ export default function UnifiedInput() {
   const setInputValue = useOmniStore((s) => s.setInputValue);
   const submitCommand = useOmniStore((s) => s.submitCommand);
   const suggestions = useOmniStore((s) => s.suggestions);
+  const matchedApps = useOmniStore((s) => s.matchedApps);
   const showSuggestions = useOmniStore((s) => s.showSuggestions);
+  const openAppWithSuggestions = useOmniStore((s) => s.openAppWithSuggestions);
+  const goToSettings = useOmniStore((s) => s.goToSettings);
+  const goToChat = useOmniStore((s) => s.goToChat);
   const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = useCallback(() => {
@@ -24,6 +28,14 @@ export default function UnifiedInput() {
     tapSound();
     submitCommand(suggestion);
   }, [submitCommand]);
+
+  const handleAppClick = useCallback((appName: string) => {
+    tapSound();
+    if (appName === 'Settings') { goToSettings(); return; }
+    if (appName === 'Omni') { goToChat(); return; }
+    const appSugs = GLOBAL_APP_SUGGESTIONS[appName] || [`Open ${appName}`, `What can ${appName} do?`, `Help me with ${appName}`];
+    openAppWithSuggestions(appName, appSugs);
+  }, [goToSettings, goToChat, openAppWithSuggestions]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSubmit();
@@ -77,6 +89,33 @@ export default function UnifiedInput() {
               >
                 <span style={{ color: 'var(--accent)', fontSize: 14 }}>→</span>
                 {s}
+              </motion.button>
+            ))}
+            
+            {matchedApps.map((app, i) => (
+              <motion.button
+                key={app.id}
+                className="suggestion-item"
+                onClick={() => handleAppClick(app.name)}
+                style={{
+                  animationDelay: `${(suggestions.length + i) * 0.05}s`,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--separator)',
+                  borderRadius: 12,
+                  padding: '12px 16px',
+                  color: 'var(--text-primary)',
+                  fontSize: 15,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  fontFamily: 'inherit',
+                  width: '100%',
+                }}
+              >
+                <span style={{ color: 'var(--accent)', fontSize: 14 }}>→</span>
+                Open {app.name}
               </motion.button>
             ))}
           </motion.div>
