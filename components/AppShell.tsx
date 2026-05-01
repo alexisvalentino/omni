@@ -98,6 +98,7 @@ const AppShell = () => {
               <HomeSwiper
                 leftPage={<SuggestionsPage />}
                 centerPage={<HomeScreen />}
+                rightPage={<AppLibrary />}
               />
             </motion.div>
           )}
@@ -128,18 +129,7 @@ const AppShell = () => {
             </motion.div>
           )}
 
-          {activeScreen === 'appLibrary' && (
-            <motion.div
-              key="appLibrary"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              style={{ position: 'absolute', inset: 0 }}
-            >
-              <AppLibrary />
-            </motion.div>
-          )}
+
 
           {activeScreen === 'chat' && (
             <motion.div

@@ -12,7 +12,6 @@ export default function HomeScreen() {
 
   const memoryItems = useOmniStore((s) => s.memoryItems);
   const goToSettings = useOmniStore((s) => s.goToSettings);
-  const goToAppLibrary = useOmniStore((s) => s.goToAppLibrary);
   const [greeting, setGreeting] = useState(getGreeting());
 
   // Update greeting when time-of-day changes
@@ -50,31 +49,7 @@ export default function HomeScreen() {
           display: 'flex',
           gap: 8,
         }}>
-          {/* App Library button */}
-          <motion.button
-            whileTap={{ scale: 0.85 }}
-            onClick={() => { tapSound(); goToAppLibrary(); }}
-            style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--separator)',
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: 'var(--text-secondary)',
-            }}
-            aria-label="App Library"
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <rect x="3" y="3" width="7" height="7" rx="1"/>
-              <rect x="14" y="3" width="7" height="7" rx="1"/>
-              <rect x="14" y="14" width="7" height="7" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1"/>
-            </svg>
-          </motion.button>
+
 
           {/* Settings gear */}
           <motion.button

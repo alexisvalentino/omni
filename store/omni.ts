@@ -46,6 +46,7 @@ export const GLOBAL_APP_SUGGESTIONS: Record<string, string[]> = {
   'Safari': ['Search the web for best restaurants', 'Open my bookmarks', 'What are trending searches?', 'Look up movie showtimes'],
   'Translate': ['Translate hello to Japanese', 'How do you say thank you in French?', 'Translate this menu to English', 'Spanish to English'],
   'Omni': ['Hey Omni!', "What's my schedule?", 'Check my email', "How's the weather?"],
+  'Agent': ['Book a flight to NYC', 'Book an Uber to the airport', 'Book a table for dinner', 'Order my usual coffee', 'How is my portfolio doing?', 'Find a hotel in Paris'],
 };
 
 export type ContextPill = {
@@ -167,6 +168,7 @@ export interface OmniState {
 
   // Computed helpers
   isHomeScreen: boolean;
+  homeResetTrigger: number;
 
   // Actions
   unlock: () => void;
@@ -233,7 +235,7 @@ function matchScenario(input: string): ScenarioId {
   return null;
 }
 
-function getSuggestions(input: string): string[] {
+function getSuggestions(input: string, max: number = 5): string[] {
   const lower = input.toLowerCase().trim();
   if (!lower) return [];
 
@@ -248,7 +250,7 @@ function getSuggestions(input: string): string[] {
     return 0;
   });
 
-  return Array.from(new Set(matches)).slice(0, 3);
+  return Array.from(new Set(matches)).slice(0, max);
 }
 
 function getScenarioData(scenario: ScenarioId, command: string = '') {
@@ -875,6 +877,7 @@ export const useOmniStore = create<OmniState>((set, get) => ({
   chatMessages: [],
   isChatTyping: false,
   apps: defaultApps,
+  homeResetTrigger: 0,
 
   // Computed
   get isHomeScreen() { return get().activeScreen === 'home'; },
@@ -884,11 +887,24 @@ export const useOmniStore = create<OmniState>((set, get) => ({
   lock: () => set({ isLocked: true, activeScreen: 'lock', isControlCenterOpen: false, isNotificationCenterOpen: false, isMemoryFeedOpen: false }),
 
   setInputValue: (value) => {
-    const suggestions = getSuggestions(value);
     const trimmed = value.trim().toLowerCase();
-    const matchedApps = trimmed.length > 0 
-      ? get().apps.filter(app => app.name.toLowerCase().includes(trimmed))
+    let matchedApps = trimmed.length > 0 
+      ? get().apps.filter(app => app.name.toLowerCase().includes(trimmed)).sort((a, b) => {
+          const aStarts = a.name.toLowerCase().startsWith(trimmed);
+          const bStarts = b.name.toLowerCase().startsWith(trimmed);
+          if (aStarts && !bStarts) return -1;
+          if (!aStarts && bStarts) return 1;
+          return 0;
+        })
       : [];
+      
+    // Max 2 apps to leave room for text suggestions
+    matchedApps = matchedApps.slice(0, 2);
+    
+    // Max 5 items total between apps and text suggestions
+    const maxSuggestions = 5 - matchedApps.length;
+    const suggestions = getSuggestions(value, maxSuggestions);
+
     set({ 
       inputValue: value, 
       suggestions, 
@@ -926,6 +942,7 @@ export const useOmniStore = create<OmniState>((set, get) => ({
   goHome: () => {
     set({
       activeScreen: 'home',
+      homeResetTrigger: get().homeResetTrigger + 1,
       isWorkspaceOpen: false,
       activeScenario: null,
       workspacePhase: 'orchestrator',
