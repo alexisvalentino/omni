@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOmniStore } from '../../store/omni';
 import { tapSound } from '../../services/sounds';
@@ -65,6 +66,28 @@ export function NotificationCenter() {
   const markNotificationRead = useOmniStore((s) => s.markNotificationRead);
   const clearNotifications = useOmniStore((s) => s.clearNotifications);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    
+    const startY = e.pageY;
+    const startScroll = el.scrollTop;
+    el.style.cursor = 'grabbing';
+
+    const onMove = (ev: MouseEvent) => {
+      el.scrollTop = startScroll - (ev.pageY - startY);
+    };
+    const onUp = () => {
+      el.style.cursor = 'auto';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, []);
+
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
@@ -87,6 +110,8 @@ export function NotificationCenter() {
 
           {/* Panel */}
           <motion.div
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
             initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -40 }}
@@ -98,14 +123,17 @@ export function NotificationCenter() {
               zIndex: 201,
               background: 'var(--bg-primary)',
               overflowY: 'auto',
-              paddingTop: 'max(var(--safe-area-top, 0px), 50px)',
-              paddingBottom: 40,
             }}
           >
             {/* Header */}
             <div style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: 'var(--bg-primary)',
+              padding: '0 20px 16px',
+              paddingTop: 'max(var(--safe-area-top, 0px), 50px)',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '0 20px', marginBottom: 16,
             }}>
               <div>
                 <h2 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
@@ -146,7 +174,7 @@ export function NotificationCenter() {
             </div>
 
             {/* Notification list */}
-            <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ padding: '0 20px', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {notifications.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-tertiary)' }}>
                   <div style={{ fontSize: 40, marginBottom: 12 }}>🔔</div>

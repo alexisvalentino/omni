@@ -26,6 +26,28 @@ export default function LockScreen() {
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const unread = notifications.filter((n) => !n.read);
 
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const el = notifRef.current;
+    if (!el) return;
+    
+    const startY = e.pageY;
+    const startScroll = el.scrollTop;
+    el.style.cursor = 'grabbing';
+
+    const onMove = (ev: MouseEvent) => {
+      el.scrollTop = startScroll - (ev.pageY - startY);
+    };
+    const onUp = () => {
+      el.style.cursor = 'auto';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, []);
+
   const handleDragEnd = useCallback((_: any, info: any) => {
     if (info.offset.y < -100) {
       unlock();
@@ -50,6 +72,7 @@ export default function LockScreen() {
         cursor: 'pointer',
         opacity: lockOpacity,
         scale: lockScale,
+        touchAction: 'none',
       }}
     >
       {/* Time display */}
@@ -85,6 +108,9 @@ export default function LockScreen() {
 
       {/* Notification previews */}
       <motion.div
+        ref={notifRef}
+        onMouseDown={handleMouseDown}
+        onPointerDown={(e) => e.stopPropagation()}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}

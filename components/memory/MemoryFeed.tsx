@@ -89,7 +89,14 @@ export default function MemoryFeed() {
             transition={{ type: 'spring', stiffness: 300, damping: 35 }}
             className="memory-feed-panel"
           >
-            <div style={{ padding: '0 20px', paddingTop: 'max(var(--safe-area-top, 0px), 12px)' }}>
+            <div style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: 'var(--bg-primary)',
+              padding: '0 20px 20px',
+              paddingTop: 'max(var(--safe-area-top, 0px), 12px)',
+            }}>
               {/* Drag handle */}
               <div style={{
                 width: 36,
@@ -104,7 +111,6 @@ export default function MemoryFeed() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 20,
               }}>
                 <div>
                   <h2 style={{
@@ -162,9 +168,11 @@ export default function MemoryFeed() {
                   </motion.button>
                 </div>
               </div>
+            </div>
 
+            <div style={{ padding: '0 20px', paddingBottom: 40 }}>
               {/* Unified timeline */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 40 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {allItems.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-tertiary)' }}>
                     <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
